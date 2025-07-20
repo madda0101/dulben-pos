@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DULBEN POS SYSTEM</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+    .container { max-width: 800px; margin: 30px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #2c3e50; }
+    input, select, button { padding: 10px; margin: 5px 0; width: 100%; border: 1px solid #ccc; border-radius: 5px; }
+    button { background-color: #27ae60; color: white; cursor: pointer; }
+    button:hover { background-color: #219150; }
+    .section { margin-bottom: 30px; }
+    label { font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #ecf0f1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>DULBEN POS SYSTEM</h2>
+
+    <div class="section">
+      <h3>නිෂ්පාදන එකතු කරන්න</h3>
+      <input type="text" id="productName" placeholder="භාණ්ඩයේ නම">
+      <select id="productWeight">
+        <option value="50g">50g</option>
+        <option value="100g">100g</option>
+        <option value="250g">250g</option>
+        <option value="500g">500g</option>
+        <option value="1kg">1kg</option>
+      </select>
+      <input type="number" id="productPrice" placeholder="මිල (රු.)">
+      <button onclick="addProduct()">එකතු කරන්න</button>
+      <table id="productTable">
+        <thead>
+          <tr><th>නම</th><th>ඝනත්වය</th><th>මිල</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h3>ගනුදෙනුකරු විස්තර</h3>
+      <input type="text" id="customerName" placeholder="නම">
+      <input type="text" id="customerPhone" placeholder="දුරකථන අංකය">
+      <input type="text" id="customerAddress" placeholder="ලිපිනය">
+      <button onclick="saveCustomer()">සුරකින්න</button>
+    </div>
+
+    <div class="section">
+      <h3>විකුණුම්</h3>
+      <input type="date" id="saleDate">
+      <input type="text" id="saleItems" placeholder="භාණ්ඩ (eg: Chili-250g x2, Curry-500g x1)">
+      <input type="number" id="saleTotal" placeholder="මුළු මුදල (රු.)">
+      <button onclick="saveSale()">විකිණීම සුරකින්න</button>
+      <table id="salesTable">
+        <thead>
+          <tr><th>දිනය</th><th>භාණ්ඩ</th><th>මුළු මුදල</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    const productTable = document.querySelector("#productTable tbody");
+    const salesTable = document.querySelector("#salesTable tbody");
+
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const weight = document.getElementById("productWeight").value;
+      const price = document.getElementById("productPrice").value;
+
+      if (!name || !price) return alert("කරුණාකර සියලු තොරතුරු ලබාදෙන්න");
+
+      const row = document.createElement("tr");
+      row.innerHTML = `<td>${name}</td><td>${weight}</td><td>${price}</td>`;
+      productTable.appendChild(row);
+    }
+
+    function saveCustomer() {
+      const name = document.getElementById("customerName").value;
+      const phone = document.getElementById("customerPhone").value;
+      const address = document.getElementById("customerAddress").value;
+      if (!name || !phone || !address) return alert("සම්පූර්ණ විස්තර ඇතුළත් කරන්න");
+      alert("ගනුදෙනුකරු සුරකින ලදී ✅");
+    }
+
+    function saveSale() {
+      const date = document.getElementById("saleDate").value;
+      const items = document.getElementById("saleItems").value;
+      const total = document.getElementById("saleTotal").value;
+      if (!date || !items || !total) return alert("සියලු විකුණුම් තොරතුරු ඇතුළත් කරන්න");
+
+      const row = document.createElement("tr");
+      row.innerHTML = `<td>${date}</td><td>${items}</td><td>${total}</td>`;
+      salesTable.appendChild(row);
+    }
+  </script>
+</body>
+</html>
