@@ -1,106 +1,138 @@
-
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DULBEN POS SYSTEM</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
-    .container { max-width: 800px; margin: 30px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h2 { text-align: center; color: #2c3e50; }
-    input, select, button { padding: 10px; margin: 5px 0; width: 100%; border: 1px solid #ccc; border-radius: 5px; }
-    button { background-color: #27ae60; color: white; cursor: pointer; }
-    button:hover { background-color: #219150; }
-    .section { margin-bottom: 30px; }
-    label { font-weight: bold; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #ecf0f1; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dulben Spices - Full Stock Manager</title>
+<style>
+  :root{
+    --bg: #fff8f0;
+    --accent: #b22222;
+  }
+  body{font-family:sans-serif;background:var(--bg);padding:20px}
+  h1{color:var(--accent)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+  .card{padding:12px;border-radius:12px;box-shadow:0 6px 12px rgba(0,0,0,0.1);background:#fff;position:relative;transition:transform .2s;cursor:default;}
+  .card:hover{transform:translateY(-6px) rotateX(4deg) rotateY(-4deg)}
+  .badge{display:inline-block;padding:4px 8px;border-radius:999px;color:#fff;font-weight:600;margin-top:6px}
+  .qty{position:absolute;top:10px;right:10px;font-weight:700}
+  .btn{padding:6px 10px;border:none;border-radius:6px;background:var(--accent);color:white;cursor:pointer;margin:4px 2px;}
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  input,select{padding:6px;border-radius:6px;border:1px solid #ccc;margin-right:4px}
+  #controls{margin-bottom:20px}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h2>DULBEN POS SYSTEM</h2>
+<h1>Dulben Spices — Full Stock Manager</h1>
 
-    <div class="section">
-      <h3>නිෂ්පාදන එකතු කරන්න</h3>
-      <input type="text" id="productName" placeholder="භාණ්ඩයේ නම">
-      <select id="productWeight">
-        <option value="50g">50g</option>
-        <option value="100g">100g</option>
-        <option value="250g">250g</option>
-        <option value="500g">500g</option>
-        <option value="1kg">1kg</option>
-      </select>
-      <input type="number" id="productPrice" placeholder="මිල (රු.)">
-      <button onclick="addProduct()">එකතු කරන්න</button>
-      <table id="productTable">
-        <thead>
-          <tr><th>නම</th><th>ඝනත්වය</th><th>මිල</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+<div id="controls">
+  <input type="text" id="productName" placeholder="Product name e.g. Chili Powder">
+  <select id="productSize">
+    <option>50g</option><option>100g</option><option>250g</option><option>500g</option><option>1kg</option>
+  </select>
+  <input type="number" id="productQty" placeholder="Qty" value="0">
+  <button class="btn" id="addBtn">Add / Update</button>
+  <button class="btn ghost" id="exportBtn">Export CSV</button>
+  <input type="password" id="adminPwd" placeholder="Admin password">
+  <button class="btn" id="loginBtn">Login</button>
+</div>
 
-    <div class="section">
-      <h3>ගනුදෙනුකරු විස්තර</h3>
-      <input type="text" id="customerName" placeholder="නම">
-      <input type="text" id="customerPhone" placeholder="දුරකථන අංකය">
-      <input type="text" id="customerAddress" placeholder="ලිපිනය">
-      <button onclick="saveCustomer()">සුරකින්න</button>
-    </div>
+<div class="grid" id="grid"></div>
 
-    <div class="section">
-      <h3>විකුණුම්</h3>
-      <input type="date" id="saleDate">
-      <input type="text" id="saleItems" placeholder="භාණ්ඩ (eg: Chili-250g x2, Curry-500g x1)">
-      <input type="number" id="saleTotal" placeholder="මුළු මුදල (රු.)">
-      <button onclick="saveSale()">විකිණීම සුරකින්න</button>
-      <table id="salesTable">
-        <thead>
-          <tr><th>දිනය</th><th>භාණ්ඩ</th><th>මුළු මුදල</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+<script>
+// ----- Data -----
+const colorMap = {
+  'Chili Powder':'#c62828',
+  'Chili Pieces':'#d84315',
+  'Curry Powder':'#ff8f00',
+  'Rost Curry Powder':'#ef6c00',
+  'Turmeric Powder':'#f9a825',
+  'Paper Powder':'#6d4c41',
+  'Pepper Powder':'#4e342e',
+};
 
-  </div>
+const initialStock = [
+  {name:'Chili Powder', size:'100g', qty:14},
+  {name:'Chili Powder', size:'250g', qty:6},
+  {name:'Chili Powder', size:'1kg', qty:1},
+  {name:'Chili Pieces', size:'100g', qty:13},
+  {name:'Chili Pieces', size:'250g', qty:4},
+  {name:'Chili Pieces', size:'500g', qty:1},
+  {name:'Chili Pieces', size:'1kg', qty:1},
+  {name:'Curry Powder', size:'100g', qty:14},
+  {name:'Curry Powder', size:'250g', qty:4},
+  {name:'Curry Powder', size:'500g', qty:1},
+  {name:'Curry Powder', size:'1kg', qty:1},
+  {name:'Rost Curry Powder', size:'100g', qty:14},
+  {name:'Rost Curry Powder', size:'250g', qty:12},
+  {name:'Paper Powder', size:'100g', qty:14},
+  {name:'Paper Powder', size:'250g', qty:3},
+  {name:'Turmeric Powder', size:'100g', qty:15},
+  {name:'Turmeric Powder', size:'250g', qty:3},
+];
 
-  <script>
-    const productTable = document.querySelector("#productTable tbody");
-    const salesTable = document.querySelector("#salesTable tbody");
+let stock = JSON.parse(localStorage.getItem('dulbenStock')) || initialStock.slice();
+let adminLogged = localStorage.getItem('dulbenAdmin')==='1';
+const ADMIN_PASSWORD = '0101';
 
-    function addProduct() {
-      const name = document.getElementById("productName").value;
-      const weight = document.getElementById("productWeight").value;
-      const price = document.getElementById("productPrice").value;
+// ----- Functions -----
+function saveStock(){ localStorage.setItem('dulbenStock', JSON.stringify(stock)); }
 
-      if (!name || !price) return alert("කරුණාකර සියලු තොරතුරු ලබාදෙන්න");
-
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${name}</td><td>${weight}</td><td>${price}</td>`;
-      productTable.appendChild(row);
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  stock.forEach((item,i)=>{
+    const card = document.createElement('div');
+    card.className='card';
+    const color = colorMap[item.name]||'#607d8b';
+    card.innerHTML = `
+      <strong>${item.name}</strong><br>
+      Size: ${item.size}<br>
+      <span class="badge" style="background:${color}">${item.size}</span>
+      <div class="qty">Qty: ${item.qty}</div>
+    `;
+    if(adminLogged){
+      const plus=document.createElement('button'); plus.textContent='+1'; plus.className='btn'; plus.onclick=()=>{item.qty++; saveStock(); renderGrid();}
+      const minus=document.createElement('button'); minus.textContent='-1'; minus.className='btn'; minus.onclick=()=>{if(item.qty>0)item.qty--; saveStock(); renderGrid();}
+      const rem=document.createElement('button'); rem.textContent='Remove'; rem.className='btn ghost'; rem.onclick=()=>{if(confirm('Remove this SKU?')){stock.splice(i,1);saveStock();renderGrid();}};
+      card.appendChild(plus); card.appendChild(minus); card.appendChild(rem);
     }
+    grid.appendChild(card);
+  });
+}
 
-    function saveCustomer() {
-      const name = document.getElementById("customerName").value;
-      const phone = document.getElementById("customerPhone").value;
-      const address = document.getElementById("customerAddress").value;
-      if (!name || !phone || !address) return alert("සම්පූර්ණ විස්තර ඇතුළත් කරන්න");
-      alert("ගනුදෙනුකරු සුරකින ලදී ✅");
-    }
+// ----- Add / Update -----
+document.getElementById('addBtn').addEventListener('click',()=>{
+  const name=document.getElementById('productName').value.trim();
+  const size=document.getElementById('productSize').value;
+  const qty=parseInt(document.getElementById('productQty').value)||0;
+  if(!name){ return alert('Enter product name'); }
+  if(!adminLogged){ return alert('Admin login required'); }
+  const idx = stock.findIndex(p=>p.name===name && p.size===size);
+  if(idx>=0){ stock[idx].qty += qty; }
+  else{ stock.push({name,size,qty}); }
+  saveStock();
+  renderGrid();
+});
 
-    function saveSale() {
-      const date = document.getElementById("saleDate").value;
-      const items = document.getElementById("saleItems").value;
-      const total = document.getElementById("saleTotal").value;
-      if (!date || !items || !total) return alert("සියලු විකුණුම් තොරතුරු ඇතුළත් කරන්න");
+// ----- Admin login -----
+document.getElementById('loginBtn').addEventListener('click',()=>{
+  const val=document.getElementById('adminPwd').value.trim();
+  if(val===ADMIN_PASSWORD){ adminLogged=true; localStorage.setItem('dulbenAdmin','1'); alert('Admin logged in'); renderGrid();}
+  else alert('Wrong password');
+});
 
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${date}</td><td>${items}</td><td>${total}</td>`;
-      salesTable.appendChild(row);
-    }
-  </script>
+// ----- Export CSV -----
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const rows=[['Product','Size','Quantity'],...stock.map(s=>[s.name,s.size,s.qty])];
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='dulben_stock.csv'; a.click(); URL.revokeObjectURL(url);
+});
+
+// ----- Initial render -----
+renderGrid();
+</script>
 </body>
 </html>
